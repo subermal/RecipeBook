@@ -1,24 +1,24 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import React, { useCallback, useContext } from "react";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { View } from "react-native";
+import AuthProvider, { AuthContext } from "../src/context/AuthContext";
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+SplashScreen.preventAutoHideAsync();
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+function Gate({ children }: { children: React.ReactNode }) {
+  const { booted } = useContext(AuthContext);
+  const onLayout = useCallback(() => { if (booted) SplashScreen.hideAsync(); }, [booted]);
+  if (!booted) return <View style={{ flex:1 }} />;
+  return <View onLayout={onLayout} style={{ flex:1 }}>{children}</View>;
+}
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <AuthProvider>
+      <Gate>
+        <Stack screenOptions={{ headerShown: false }} />
+      </Gate>
+    </AuthProvider>
   );
 }
